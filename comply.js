@@ -52,7 +52,7 @@ const meetingsForUserurl = `/report/users/${user}/meetings?from=2022-01-30&to=20
   let res = await connection.get(meetingsForUserurl, {
     proxy: {
       host: "uk-server-proxy-02.systems.uk.hsbc",
-      port: 80,
+      port: 80
     },
   });
   const meetings = res.data.meetings;
@@ -65,7 +65,7 @@ const meetingsForUserurl = `/report/users/${user}/meetings?from=2022-01-30&to=20
     res = await connection.get(meetingUrl, {
       proxy: {
         host: "uk-server-proxy-02.systems.uk.hsbc",
-        port: 80,
+        port: 80
       },
     });
     //add the participant email to the data
