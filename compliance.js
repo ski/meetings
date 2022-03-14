@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 import { Config } from "./config.js";
 import jwt from "jsonwebtoken";
-//const bunyan = require("bunyan");
 import bunyan from "bunyan";
+import HttpsProxyAgent from 'https-proxy-agent';
 
 //creatre a rotating logger
 var log = bunyan.createLogger({
@@ -28,12 +28,14 @@ let payload = {
 const token = jwt.sign(payload, Config.APISecret);
 
 (async () => {
+  const proxyAgent = new HttpsProxyAgent('http://46.250.171.31:8080');
   //TODO: change this. currently only one user report will be generated. The full
   //TODO: solution will have the feature to read the user either from a file or
   //TODO: from an HR data feed.
   const testEmail = "suhailski@gmail.com";
   const meetingForUserURL = `https://api.zoom.us/v2/report/users/${testEmail}/meetings?from=2022-01-30&to=2022-02-16&type=past`;
   let response = await fetch(meetingForUserURL, {
+    agent: proxyAgent,
     method: "get",
     headers: {
       "Content-Type": "application/json",
@@ -51,6 +53,7 @@ const token = jwt.sign(payload, Config.APISecret);
     let meetingUrl = `https://api.zoom.us/v2/metrics/meetings/${meetingId}?type=past`;
     //get meta data for the meeting
     const response = await fetch(meetingUrl, {
+        agent: proxyAgent,
         method: "get",
         headers: {
           "Content-Type": "application/json",
