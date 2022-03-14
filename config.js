@@ -8,4 +8,4 @@ const config = {
 	}
 };
 
-module.exports = config[env]
+export const Config = config[env]

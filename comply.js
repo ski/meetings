@@ -17,6 +17,7 @@ var log = bunyan.createLogger({
   ],
 });
 
+
 //the configuration api keey is kept in config.js
 let payload = {
   iss: config.APIKey,
@@ -49,12 +50,7 @@ const meetingsForUserurl = `/report/users/${user}/meetings?from=2022-01-30&to=20
 //this is a self invoking expression so that asynchronous axion invocations can be made
 (async () => {
   //get all meetings for a user
-  let res = await connection.get(meetingsForUserurl, {
-    proxy: {
-      host: "uk-server-proxy-02.systems.uk.hsbc",
-      port: 80
-    },
-  });
+  let res = await connection.get(meetingsForUserurl);
   const meetings = res.data.meetings;
   //this should return 0 or more meetings in the time period.
   for (let i = 0; i < meetings.length; i++) {
@@ -62,12 +58,7 @@ const meetingsForUserurl = `/report/users/${user}/meetings?from=2022-01-30&to=20
     //construct meeting url
     let meetingUrl = `https://api.zoom.us/v2/metrics/meetings/${meetingId}?type=past`;
     //get meta data for the meeting
-    res = await connection.get(meetingUrl, {
-      proxy: {
-        host: "uk-server-proxy-02.systems.uk.hsbc",
-        port: 80
-      },
-    });
+    res = await connection.get(meetingUrl);
     //add the participant email to the data
     const data = {
       participant_email: testEmail,
