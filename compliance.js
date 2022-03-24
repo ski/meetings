@@ -5,6 +5,7 @@ import bunyan from "bunyan";
 import HttpsProxyAgent from "https-proxy-agent";
 import fs from "fs";
 
+
 //creatre a rotating logger
 var log = bunyan.createLogger({
   name: "hsbc-zoom-compliance",
@@ -29,12 +30,10 @@ let payload = {
 const token = jwt.sign(payload, Config.APISecret);
 
 (async () => {
-  const proxyAgent = new HttpsProxyAgent("http://46.250.171.31:8080");
+  const proxyAgent = new HttpsProxyAgent({hostname:'46.250.171.31', port:8080, rejectUnauthorized:false});
   //TODO: change this. currently only one user report will be generated. The full
   //TODO: solution will have the feature to read the user either from a file or
   //TODO: from an HR data feed.
-  const testEmail = "suhailski@gmail.com";
-
   fs.readFile(
     "names.json",
     // callback function that is called when reading file is done
@@ -79,7 +78,7 @@ const token = jwt.sign(payload, Config.APISecret);
             const payload = await response.json();
             //add the participant email to the data
             const data = {
-              participant_email: testEmail,
+              participant_email: value.email,
               ...payload,
             };
 
