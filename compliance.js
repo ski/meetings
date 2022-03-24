@@ -5,7 +5,6 @@ import bunyan from "bunyan";
 import HttpsProxyAgent from "https-proxy-agent";
 import fs from "fs";
 
-
 //creatre a rotating logger
 var log = bunyan.createLogger({
   name: "hsbc-zoom-compliance",
@@ -30,7 +29,7 @@ let payload = {
 const token = jwt.sign(payload, Config.APISecret);
 
 (async () => {
-  const proxyAgent = new HttpsProxyAgent({hostname:'46.250.171.31', port:8080, rejectUnauthorized:false});
+  const proxyAgent = new HttpsProxyAgent("http://uk-server-proxy-02.systems.uk.hsbc:8080");
   //TODO: change this. currently only one user report will be generated. The full
   //TODO: solution will have the feature to read the user either from a file or
   //TODO: from an HR data feed.
@@ -46,7 +45,7 @@ const token = jwt.sign(payload, Config.APISecret);
       json.names.forEach(async function (value) {
         const meetingForUserURL = `https://api.zoom.us/v2/report/users/${value.email}/meetings?from=2022-01-30&to=2022-02-16&type=past`;
         let response = await fetch(meetingForUserURL, {
-          //agent: proxyAgent,
+          agent: proxyAgent,
           method: "get",
           headers: {
             "Content-Type": "application/json",
@@ -66,7 +65,7 @@ const token = jwt.sign(payload, Config.APISecret);
             let meetingUrl = `https://api.zoom.us/v2/metrics/meetings/${meetingId}?type=past`;
             //get meta data for the meeting
             const response = await fetch(meetingUrl, {
-              //agent: proxyAgent,
+              agent: proxyAgent,
               method: "get",
               headers: {
                 "Content-Type": "application/json",
@@ -78,7 +77,7 @@ const token = jwt.sign(payload, Config.APISecret);
             const payload = await response.json();
             //add the participant email to the data
             const data = {
-              participant_email: value.email,
+              participant_email: testEmail,
               ...payload,
             };
 
