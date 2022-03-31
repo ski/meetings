@@ -82,35 +82,51 @@ const token = jwt.sign(payload, Config.APISecret);
             //TODO: need to figure out how to fetch only needs feilds from Zoom
 
             for (let i = 0; i < payload.participants.length; i++) {
-              delete payload.participants[i].internal_ip_addresses;
-              delete payload.participants[i].data_center;
-              delete payload.participants[i].full_data_center;
-              delete payload.participants[i].connection_type;
-              delete payload.participants[i].join_time;
-              delete payload.participants[i].leave_time;
-              delete payload.participants[i].pc_name;
-              delete payload.participants[i].domain;
-              delete payload.participants[i].mac_addr;
-              delete payload.participants[i].harddisk_id;
-              delete payload.participants[i].version;
-              delete payload.participants[i].leave_reason;
-              delete payload.participants[i].registrant_id;
-              delete payload.participants[i].status;
-              delete payload.participants[i].customer_key;
-              delete payload.participants[i].sip_uri;
-              delete payload.participants[i].from_sip_uri;
-              delete payload.participants[i].location;  
-              delete payload.participants[i].camera  
-              delete payload.participants[i].microphone
-              delete payload.participants[i].speaker  
-              delete payload.participants[i].camera     
-              delete payload.participants[i].user_name
+              // delete payload.participants[i].internal_ip_addresses;
+              // delete payload.participants[i].data_center;
+              // delete payload.participants[i].full_data_center;
+              // delete payload.participants[i].connection_type;
+              // delete payload.participants[i].join_time;
+              // delete payload.participants[i].leave_time;
+              // delete payload.participants[i].pc_name;
+              // delete payload.participants[i].domain;
+              // delete payload.participants[i].mac_addr;
+              // delete payload.participants[i].harddisk_id;
+              // delete payload.participants[i].version;
+              // delete payload.participants[i].leave_reason;
+              // delete payload.participants[i].registrant_id;
+              // delete payload.participants[i].status;
+              // delete payload.participants[i].customer_key;
+              // delete payload.participants[i].sip_uri;
+              // delete payload.participants[i].from_sip_uri;
+              // delete payload.participants[i].location;  
+              // delete payload.participants[i].camera  
+              // delete payload.participants[i].microphone
+              // delete payload.participants[i].speaker  
+              // delete payload.participants[i].camera     
+              // delete payload.participants[i].user_name
 
               if(!payload.participants[i].email) {
-                payload.participants[i].email = 'external';
-                payload.participants[i].participant_user_id = 'external';
+                payload.participants[i].email = 'Unknown';
+                payload.participants[i].participant_user_id = '0_0000-000000000000-00';
+                payload.participants[i].id = '0_0000-000000000000-00';
               }
-              log.info(payload.participants[i]);            
+              const data = {
+                'meetingid': `${meetingId}`,
+                'id': `${payload.participants[i].id}`,
+                'user_id':`${payload.participants[i].user_id}`,
+                'email' : `${payload.participants[i].email}`,
+                'participant_user_id' : `${payload.participants[i].participant_user_id}`,
+                'network_type'  :`${payload.participants[i].network_type}`,
+                'device' : `${payload.participants[i].device}`,
+                'ip_address' : `${payload.participants[i].ip_address}`,
+                'share_application' : `${payload.participants[i].share_application}`,
+                'share_desktop' : `${payload.participants[i].share_desktop}`,
+                'share_whiteboard' : `${payload.participants[i].share_whiteboard}`,
+                'recording' : `${payload.participants[i].recording}`,                
+                'role' : `${payload.participants[i].role}`,                
+              };              
+              log.info(data);
             }
           }
         }
