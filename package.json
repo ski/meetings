@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^0.26.0",
     "bunyan": "^1.8.15",
+    "csv-parser": "^3.0.0",
     "https-proxy-agent": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^3.2.2"
