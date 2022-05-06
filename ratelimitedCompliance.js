@@ -7,10 +7,6 @@ import fs from "fs";
 
 const maxRequests = 20;
 const maxRequestWindowMS = 60000;
-const msBetweenRequests = maxRequestWindowMS / maxRequests;
-const numRequests = 10;
-const from = "";
-const to = "";
 
 class TokenBucketRateLimiter {
   constructor({ maxRequests, maxRequestWindowMS }) {
