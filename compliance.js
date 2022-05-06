@@ -82,30 +82,6 @@ const token = jwt.sign(payload, Config.APISecret);
             //TODO: need to figure out how to fetch only needs feilds from Zoom
 
             for (let i = 0; i < payload.participants.length; i++) {
-              // delete payload.participants[i].internal_ip_addresses;
-              // delete payload.participants[i].data_center;
-              // delete payload.participants[i].full_data_center;
-              // delete payload.participants[i].connection_type;
-              // delete payload.participants[i].join_time;
-              // delete payload.participants[i].leave_time;
-              // delete payload.participants[i].pc_name;
-              // delete payload.participants[i].domain;
-              // delete payload.participants[i].mac_addr;
-              // delete payload.participants[i].harddisk_id;
-              // delete payload.participants[i].version;
-              // delete payload.participants[i].leave_reason;
-              // delete payload.participants[i].registrant_id;
-              // delete payload.participants[i].status;
-              // delete payload.participants[i].customer_key;
-              // delete payload.participants[i].sip_uri;
-              // delete payload.participants[i].from_sip_uri;
-              // delete payload.participants[i].location;  
-              // delete payload.participants[i].camera  
-              // delete payload.participants[i].microphone
-              // delete payload.participants[i].speaker  
-              // delete payload.participants[i].camera     
-              // delete payload.participants[i].user_name
-
               if(!payload.participants[i].email) {
                 payload.participants[i].email = 'Unknown';
                 payload.participants[i].participant_user_id = '0_0000-000000000000-00';
