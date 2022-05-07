@@ -107,7 +107,7 @@ async function callTheAPI(reqIndex, attempt = 0) {
 
   //get meta data for the meeting
   const response = await fetch(url, {
-    //agent: proxyAgent,
+    agent: proxyAgent,
     method: "get",
     headers: {
       "Content-Type": "application/json",
@@ -152,7 +152,7 @@ async function logMeeting(response, meetingId) {
 async function fetchAndRetryIfNecessary(callAPI, attempt = 0, index, url) {
   const response = await callTheAPI(index);
 
-  //add error handling
+  //add error handling    
   // if (response.status === 429) {
   //   const retryAfter = response.headers.get('retry-after')
   //   const millisToSleep = getMillisToSleep(retryAfter)
