@@ -5,7 +5,7 @@ import bunyan from "bunyan";
 import HttpsProxyAgent from "https-proxy-agent";
 import fs from "fs";
 
-const maxRequests = 20;
+const maxRequests = 19;
 const maxRequestWindowMS = 60000;
 
 class TokenBucketRateLimiter {
