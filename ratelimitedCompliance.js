@@ -64,6 +64,21 @@ const payload = {
 const token = jwt.sign(payload, Config.APISecret);
 let type = "users";
 
+//creatre a rotating logger
+let log = bunyan.createLogger({
+  name: "hsbc-zoom-compliance",
+  serializers: bunyan.stdSerializers,
+  streams: [
+    {
+      type: "rotating-file",
+      path: "compliance.log",
+      period: "1d", // daily rotation
+      count: 3, // keep 3 back copies
+      // `type: 'file'` is implied
+    },
+  ],
+});
+
 async function main() {
   const responses = await benchmarkParallelTokenBucket(ids.length);
   ids = [];
@@ -79,58 +94,16 @@ async function main() {
   }
 
   type = "meetings";
-  //creatre a rotating logger
-  let log = bunyan.createLogger({
-    name: "hsbc-zoom-compliance",
-    serializers: bunyan.stdSerializers,
-    streams: [
-      {
-        type: "rotating-file",
-        path: "compliance.log",
-        period: "1d", // daily rotation
-        count: 3, // keep 3 back copies
-        // `type: 'file'` is implied
-      },
-    ],
-  });
-
   const meetings = await benchmarkParallelTokenBucket(ids.length);
-
-  for (let index = 0; index < meetings.length; index++) {
-    const element = meetings[index];
-    const payload = await element.json();
-
-    for (let i = 0; i < payload.participants.length; i++) {
-      if (!payload.participants[i].email) {
-        payload.participants[i].email = "Unknown";
-        payload.participants[i].participant_user_id = "0_0000-000000000000-00";
-        payload.participants[i].id = "0_0000-000000000000-00";
-      }
-      const hoap = {
-        meetingid: `${ids[index]}`,
-        id: `${payload.participants[i].id}`,
-        user_id: `${payload.participants[i].user_id}`,
-        email: `${payload.participants[i].email}`,
-        participant_user_id: `${payload.participants[i].participant_user_id}`,
-        network_type: `${payload.participants[i].network_type}`,
-        device: `${payload.participants[i].device}`,
-        ip_address: `${payload.participants[i].ip_address}`,
-        share_application: `${payload.participants[i].share_application}`,
-        share_desktop: `${payload.participants[i].share_desktop}`,
-        share_whiteboard: `${payload.participants[i].share_whiteboard}`,
-        recording: `${payload.participants[i].recording}`,
-        role: `${payload.participants[i].role}`,
-      };
-      log.info(hoap);
-      console.log(hoap);
-    }
-  }
 }
 
 async function callTheAPI(reqIndex, attempt = 0) {
   let url = `https://api.zoom.us/v2/report/users/${ids[reqIndex]}/meetings?from=${Config.from}&to=${Config.to}&type=past`;
-  if (type === "meetings")
+  let isLog = false;
+  if (type === "meetings") {
     url = `https://api.zoom.us/v2/metrics/meetings/${ids[reqIndex]}/participants?type=past`;
+    isLog = true;
+  }
 
   //get meta data for the meeting
   const response = await fetch(url, {
@@ -142,12 +115,44 @@ async function callTheAPI(reqIndex, attempt = 0) {
       "User-Agent": "Zoom-api-Jwt-Request",
     },
   });
+  if (isLog) logMeeting(response,ids[reqIndex]);
   return response;
+}
+
+async function logMeeting(response, meetingId) {
+  //for (let index = 0; index < meetings.length; index++) {
+  //const element = meetings[index];
+  const payload = await response.json();
+
+  for (let i = 0; i < payload.participants.length; i++) {
+    if (!payload.participants[i].email) {
+      payload.participants[i].email = "Unknown";
+      payload.participants[i].participant_user_id = "0_0000-000000000000-00";
+      payload.participants[i].id = "0_0000-000000000000-00";
+    }
+    const hoap = {
+      meetingid: `${meetingId}`,
+      id: `${payload.participants[i].id}`,
+      user_id: `${payload.participants[i].user_id}`,
+      email: `${payload.participants[i].email}`,
+      participant_user_id: `${payload.participants[i].participant_user_id}`,
+      network_type: `${payload.participants[i].network_type}`,
+      device: `${payload.participants[i].device}`,
+      ip_address: `${payload.participants[i].ip_address}`,
+      share_application: `${payload.participants[i].share_application}`,
+      share_desktop: `${payload.participants[i].share_desktop}`,
+      share_whiteboard: `${payload.participants[i].share_whiteboard}`,
+      recording: `${payload.participants[i].recording}`,
+      role: `${payload.participants[i].role}`,
+    };
+    log.info(hoap);
+  }
 }
 
 async function fetchAndRetryIfNecessary(callAPI, attempt = 0, index, url) {
   const response = await callTheAPI(index);
 
+  //add error handling
   // if (response.status === 429) {
   //   const retryAfter = response.headers.get('retry-after')
   //   const millisToSleep = getMillisToSleep(retryAfter)
