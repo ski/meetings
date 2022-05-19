@@ -103,7 +103,20 @@ async function main() {
 async function callTheAPI(reqIndex, attempt = 0) {
   let url = `https://api.zoom.us/v2/report/users/${ids[reqIndex]}/meetings?from=${Config.from}&to=${Config.to}&type=past`;
   let isLog = false;
+  let meeting = undefined;
+
   if (type === "meetings") {
+    url = `https://api.zoom.us/v2/metrics/meetings/${ids[reqIndex]}?type=past`;
+    const response = await fetch(url, {
+      //agent: proxyAgent,
+      method: "get",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "User-Agent": "Zoom-api-Jwt-Request",
+      },
+    });
+    meeting = await response.json();
     url = `https://api.zoom.us/v2/metrics/meetings/${ids[reqIndex]}/participants?type=past`;
     isLog = true;
   }
@@ -118,14 +131,14 @@ async function callTheAPI(reqIndex, attempt = 0) {
       "User-Agent": "Zoom-api-Jwt-Request",
     },
   });
-  if (isLog) logMeeting(response, ids[reqIndex]);
+  if (isLog) logMeeting(response, ids[reqIndex], meeting);
   return response;
 }
 
-async function logMeeting(response, meetingId) {
+async function logMeeting(response, meetingId, meeting) {
   try {
     const payload = await response.json();
-    if (!payload.participants) return;
+    if (!payload.participants) return;    
     for (let i = 0; i < payload.participants.length; i++) {
       if (!payload.participants[i].email) {
         payload.participants[i].email = "Unknown";
@@ -136,8 +149,22 @@ async function logMeeting(response, meetingId) {
         meetingid: `${meetingId}`,
         id: `${payload.participants[i].id}`,
         user_id: `${payload.participants[i].user_id}`,
+        user_name: `${payload.participants[i].user_name}`,
         email: `${payload.participants[i].email}`,
         participant_user_id: `${payload.participants[i].participant_user_id}`,
+        topic: `${meeting.topic}`,
+        start_time: `${meeting.start_time}`,
+        end_time: `${meeting.end_time}`,
+        duration: `${meeting.duration}`,
+        participants: `${meeting.participants}`,
+        has_pstn: `${meeting.has_pstn}`,
+        has_archiving: `${meeting.has_archiving}`,
+        has_voip: `${meeting.has_voip}`,
+        has_3rd_party_audio: `${meeting.has_3rd_party_audio}`,
+        has_video: `${meeting.has_video}`,
+        has_screen_share: `${meeting.has_screen_share}`,
+        has_recording: `${meeting.has_recording}`,
+        has_sip: `${meeting.has_sip}`,
         network_type: `${payload.participants[i].network_type}`,
         device: `${payload.participants[i].device}`,
         ip_address: `${payload.participants[i].ip_address}`,
@@ -149,7 +176,7 @@ async function logMeeting(response, meetingId) {
       };
       log.info(hoap);
     }
-  } catch (error) {}
+  } catch (error) {console.log(error)}
 }
 
 function sleep(milliseconds) {
