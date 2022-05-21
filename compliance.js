@@ -103,12 +103,14 @@ async function main() {
 async function callTheAPI(reqIndex, attempt = 0) {
   let url = `https://api.zoom.us/v2/report/users/${ids[reqIndex]}/meetings?from=${Config.from}&to=${Config.to}&type=past`;
   let isLog = false;
-  let meeting = undefined;
+  let meeting = {topic: 'NONE', start_time: '0', end_time: '0', duration: '0', 
+      participants: '0', has_pstn: false, has_voip: false,has_3rd_party_audio: false, 
+      has_video: false, has_screen_share: false, has_recording: false, has_sip: false  }
 
   if (type === "meetings") {
     url = `https://api.zoom.us/v2/metrics/meetings/${ids[reqIndex]}?type=past`;
     const response = await fetch(url, {
-      //agent: proxyAgent,
+      agent: proxyAgent,
       method: "get",
       headers: {
         "Content-Type": "application/json",
@@ -116,7 +118,11 @@ async function callTheAPI(reqIndex, attempt = 0) {
         "User-Agent": "Zoom-api-Jwt-Request",
       },
     });
-    meeting = await response.json();
+    
+    try {
+      meeting = await response.json();
+    } catch (error) {}
+    
     url = `https://api.zoom.us/v2/metrics/meetings/${ids[reqIndex]}/participants?type=past`;
     isLog = true;
   }
@@ -145,6 +151,9 @@ async function logMeeting(response, meetingId, meeting) {
         payload.participants[i].participant_user_id = "0_0000-000000000000-00";
         payload.participants[i].id = "0_0000-000000000000-00";
       }
+
+      
+
       const hoap = {
         meetingid: `${meetingId}`,
         id: `${payload.participants[i].id}`,
@@ -157,8 +166,7 @@ async function logMeeting(response, meetingId, meeting) {
         end_time: `${meeting.end_time}`,
         duration: `${meeting.duration}`,
         participants: `${meeting.participants}`,
-        has_pstn: `${meeting.has_pstn}`,
-        has_archiving: `${meeting.has_archiving}`,
+        has_pstn: `${meeting.has_pstn}`,        
         has_voip: `${meeting.has_voip}`,
         has_3rd_party_audio: `${meeting.has_3rd_party_audio}`,
         has_video: `${meeting.has_video}`,
