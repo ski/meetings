@@ -121,7 +121,7 @@ async function callTheAPI(reqIndex, attempt = 0) {
     
     try {
       meeting = await response.json();
-    } catch (error) {}
+    } catch (error) {console.log(error)}
     
     url = `https://api.zoom.us/v2/metrics/meetings/${ids[reqIndex]}/participants?type=past`;
     isLog = true;
