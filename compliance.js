@@ -110,7 +110,7 @@ async function callTheAPI(reqIndex, attempt = 0) {
   if (type === "meetings") {
     url = `https://api.zoom.us/v2/metrics/meetings/${ids[reqIndex]}?type=past`;
     const response = await fetch(url, {
-      agent: proxyAgent,
+      //agent: proxyAgent,
       method: "get",
       headers: {
         "Content-Type": "application/json",
@@ -129,7 +129,7 @@ async function callTheAPI(reqIndex, attempt = 0) {
 
   //get meta data for the meeting
   const response = await fetch(url, {
-    agent: proxyAgent,
+    //agent: proxyAgent,
     method: "get",
     headers: {
       "Content-Type": "application/json",
@@ -151,8 +151,6 @@ async function logMeeting(response, meetingId, meeting) {
         payload.participants[i].participant_user_id = "0_0000-000000000000-00";
         payload.participants[i].id = "0_0000-000000000000-00";
       }
-
-      
 
       const hoap = {
         meetingid: `${meetingId}`,

@@ -8,6 +8,7 @@ const config = {
     APISecret: "3eHI88HxJiBiEUxeDdxama9GdhFNsM0G14eB",
     from: "2022-01-30",
     to: "2022-02-16",
+    debug: true
   },
 };
 
