@@ -8,7 +8,10 @@ const config = {
     APISecret: "3eHI88HxJiBiEUxeDdxama9GdhFNsM0G14eB",
     from: "2022-01-30",
     to: "2022-02-16",
-    debug: true
+    debug: true,
+    bucketSize: 5,
+    limit: 1,
+    interval: 2000,
   },
 };
 

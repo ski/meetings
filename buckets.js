@@ -6,6 +6,9 @@ import bunyan from "bunyan";
 import HttpsProxyAgent from "https-proxy-agent";
 import fs from "fs";
 
+const proxyAgent = new HttpsProxyAgent(
+  "http://uk-server-proxy-02.systems.uk.hsbc:80"
+);
 
 let log = bunyan.createLogger({
   name: "hsbc-zoom-compliance",
@@ -44,7 +47,10 @@ async function request(i, endpoint) {
 }
 
 
-const get = stopcock(request, { bucketSize: 5,limit: 1, interval:2000  });
+const get = stopcock(request, 
+  { bucketSize: Config.bucketSize,
+    limit: Config.limit, 
+    interval:Config.interval  });
 
 const obj = JSON.parse(fs.readFileSync("./names.json", "utf8"));
 const keys = obj.names;
