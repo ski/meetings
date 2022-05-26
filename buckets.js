@@ -35,7 +35,7 @@ const token = jwt.sign(payload, Config.APISecret);
 
 async function request(i, endpoint) {
   const response =  fetch(endpoint, {
-    agent: proxyAgent,
+    //agent: proxyAgent,
     method: "get",
     headers: {
       "Content-Type": "application/json",
@@ -46,21 +46,16 @@ async function request(i, endpoint) {
   return Promise.resolve(response);
 }
 
-
-const get = stopcock(request, 
-  { bucketSize: Config.bucketSize,
-    limit: Config.limit, 
-    interval:Config.interval  });
+const get = stopcock(request, { bucketSize: Config.bucketSize, limit: Config.limit, interval:Config.interval  });
 
 const obj = JSON.parse(fs.readFileSync("./names.json", "utf8"));
-const keys = obj.names;
-let ids = [];
-for (let i = 0; i < keys.length; i++) {
-  ids.push(keys[i].email);
+const users = obj.names;
+let userEmails = [];
+for (let i = 0; i < users.length; i++) {
+  userEmails.push(users[i].email);
 }
 
-const makeLogEntry = ({email: email, meeting: meeting, participant: participant}) => {
-  
+const makeLogEntry = ({email: email, meeting: meeting, participant: participant}) => {  
   const hoap = {
     meetingid: `${meeting.id}`,
     id: `${participant.id}`,
@@ -92,8 +87,8 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
   log.info(hoap);
 }
 (async function() {
-  for (let i = 0; i < ids.length; i++) { 
-    const meetingUrl = `https://api.zoom.us/v2/report/users/${ids[i]}/meetings?from=${Config.from}&to=${Config.to}&type=past`;
+  for (let i = 0; i < userEmails.length; i++) { 
+    const meetingUrl = `https://api.zoom.us/v2/report/users/${userEmails[i]}/meetings?from=${Config.from}&to=${Config.to}&type=past`;
     let response = await get(i, meetingUrl)
     let payload = await response.json();
     if (payload.meetings !== undefined) {      
