@@ -4,25 +4,29 @@ import { Config } from "./config.js";
 import jwt from "jsonwebtoken";
 import bunyan from "bunyan";
 import HttpsProxyAgent from "https-proxy-agent";
-import fs from "fs";
+import fs, { write } from "fs";
+import { stringify } from "csv-stringify";
+
+const filename = "meetings.csv";
+const writableStream = fs.createWriteStream(filename);
 
 const proxyAgent = new HttpsProxyAgent(
   "http://uk-server-proxy-02.systems.uk.hsbc:80"
 );
 
-let log = bunyan.createLogger({
-  name: "hsbc-zoom-compliance",
-  serializers: bunyan.stdSerializers,
-  streams: [
-    {
-      type: "rotating-file",
-      path: "compliance.log",
-      period: "1d", // daily rotation
-      count: 3, // keep 3 back copies
-      // `type: 'file'` is implied
-    },
-  ],
-});
+// let log = bunyan.createLogger({
+//   name: "hsbc-zoom-compliance",
+//   serializers: bunyan.stdSerializers,
+//   streams: [
+//     {
+//       type: "rotating-file",
+//       path: "compliance.log",
+//       period: "1d", // daily rotation
+//       count: 3, // keep 3 back copies
+//       // `type: 'file'` is implied
+//     },
+//   ],
+// });
 
 //the configuration api keey is kept in config.js
 const payload = {
@@ -35,7 +39,7 @@ const token = jwt.sign(payload, Config.APISecret);
 
 async function request(i, endpoint) {
   const response =  fetch(endpoint, {
-    //agent: proxyAgent,
+    agent: proxyAgent,
     method: "get",
     headers: {
       "Content-Type": "application/json",
@@ -54,6 +58,35 @@ let userEmails = [];
 for (let i = 0; i < users.length; i++) {
   userEmails.push(users[i].email);
 }
+
+const columns = [
+  "MEETINGID",
+  "MEETINGUID",
+  "PARTICIPANTID",
+  "USERNAME",
+  "EMAIL",
+  "TOPIC",
+  "STARTTIME",
+  "ENDTIME",
+  "DURATION",
+  "PARTICIPANTS",
+  "HASPSTN",
+  "HASVOIP",
+  "HASTHIRDPARTYAUDIO",
+  "HASVIDEO",
+  "HASSCREENSHARE",
+  "HASRECORDING",
+  "HASSIP",
+  "NETWORKTYPE",
+  "DEVICE",
+  "IPADDRESS",
+  "SHAREAPPLICATION",
+  "SHAREWHITEBOARD",
+  "RECORDING",
+  "ROLE"
+];
+
+const stringifier = stringify({ header: true, columns: columns });
 
 const makeLogEntry = ({email: email, meeting: meeting, participant: participant}) => {  
   const hoap = {
@@ -84,7 +117,13 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
     recording: `${participant.recording}`,
     role: `${participant.role}`,
   };
-  log.info(hoap);
+
+  stringifier.write([hoap.meetingid, hoap.id, hoap.user_id, hoap.user_name, hoap.email, hoap.topic, 
+    hoap.start_time, hoap.end_time, hoap.duration, hoap.participants, hoap.has_pstn, hoap.has_3rd_party_audio,
+  hoap.has_video, hoap.has_screen_share, hoap.has_recording, hoap.has_sip, hoap.network_type, hoap.device,
+  hoap.ip_address, hoap.share_application, hoap.share_desktop, hoap.share_whiteboard, hoap.recording, hoap.role]);
+  
+  //log.info(hoap);
 }
 (async function() {
   for (let i = 0; i < userEmails.length; i++) { 
@@ -112,9 +151,10 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
               data.participants[j].id = "0_0000-000000000000-00";
               data.participants[j].ip_address = "0.0.0.0"
             }
-            makeLogEntry({email:data.participants[j].email, meeting:meeting, participant:data.participants[j]});
+            makeLogEntry({email:data.participants[j].email, meeting:meeting, participant:data.participants[j]});            
           }
-        }   
+          stringifier.pipe(writableStream);
+        }        
       } catch (error) {
         console.log(error);
         break;
