@@ -40,7 +40,7 @@ function process() {
     rl.on('line', (line) => {
         const data = JSON.parse(line);
         const row = [data['meetingid'],data['id'],data['user_id'],data['user_name'],
-        data['email'], data['participant_user_id'],data['topic'],data['start_time'],
+        data['email'], data['participant_user_id'],data['topic'].replace(/,/g, " "),data['start_time'],
         data['end_time'], data['duration'], data['participants'], data['has_pstn'],
         data['has_voip'], data['has_3rd_party_audio'], data['has_video'], data['has_screen_share'],
         data['has_recording'], data['has_sip'], data['network_type'], data['device'],
