@@ -4,29 +4,25 @@ import { Config } from "./config.js";
 import jwt from "jsonwebtoken";
 import bunyan from "bunyan";
 import HttpsProxyAgent from "https-proxy-agent";
-import fs, { write } from "fs";
-import { stringify } from "csv-stringify";
-
-const filename = "meetings.csv";
-const writableStream = fs.createWriteStream(filename);
+import fs from "fs";
 
 const proxyAgent = new HttpsProxyAgent(
   "http://uk-server-proxy-02.systems.uk.hsbc:80"
 );
 
-// let log = bunyan.createLogger({
-//   name: "hsbc-zoom-compliance",
-//   serializers: bunyan.stdSerializers,
-//   streams: [
-//     {
-//       type: "rotating-file",
-//       path: "compliance.log",
-//       period: "1d", // daily rotation
-//       count: 3, // keep 3 back copies
-//       // `type: 'file'` is implied
-//     },
-//   ],
-// });
+let log = bunyan.createLogger({
+  name: "hsbc-zoom-compliance",
+  serializers: bunyan.stdSerializers,
+  streams: [
+    {
+      type: "rotating-file",
+      path: "compliance.log",
+      period: "1d", // daily rotation
+      count: 3, // keep 3 back copies
+      // `type: 'file'` is implied
+    },
+  ],
+});
 
 //the configuration api keey is kept in config.js
 const payload = {
@@ -39,7 +35,7 @@ const token = jwt.sign(payload, Config.APISecret);
 
 async function request(i, endpoint) {
   const response =  fetch(endpoint, {
-    agent: proxyAgent,
+    //agent: proxyAgent,
     method: "get",
     headers: {
       "Content-Type": "application/json",
@@ -50,45 +46,21 @@ async function request(i, endpoint) {
   return Promise.resolve(response);
 }
 
-const get = stopcock(request, { bucketSize: Config.bucketSize, limit: Config.limit, interval:Config.interval  });
+
+const get = stopcock(request, 
+  { bucketSize: Config.bucketSize,
+    limit: Config.limit, 
+    interval:Config.interval  });
 
 const obj = JSON.parse(fs.readFileSync("./names.json", "utf8"));
-const users = obj.names;
-let userEmails = [];
-for (let i = 0; i < users.length; i++) {
-  userEmails.push(users[i].email);
+const keys = obj.names;
+let ids = [];
+for (let i = 0; i < keys.length; i++) {
+  ids.push(keys[i].email);
 }
 
-const columns = [
-  "MEETINGID",
-  "MEETINGUID",
-  "PARTICIPANTID",
-  "USERNAME",
-  "EMAIL",
-  "TOPIC",
-  "STARTTIME",
-  "ENDTIME",
-  "DURATION",
-  "PARTICIPANTS",
-  "HASPSTN",
-  "HASVOIP",
-  "HASTHIRDPARTYAUDIO",
-  "HASVIDEO",
-  "HASSCREENSHARE",
-  "HASRECORDING",
-  "HASSIP",
-  "NETWORKTYPE",
-  "DEVICE",
-  "IPADDRESS",
-  "SHAREAPPLICATION",
-  "SHAREWHITEBOARD",
-  "RECORDING",
-  "ROLE"
-];
-
-const stringifier = stringify({ header: true, columns: columns });
-
-const makeLogEntry = ({email: email, meeting: meeting, participant: participant}) => {  
+const makeLogEntry = ({email: email, meeting: meeting, participant: participant}) => {
+  
   const hoap = {
     meetingid: `${meeting.id}`,
     id: `${participant.id}`,
@@ -110,34 +82,31 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
     has_sip: `${meeting.has_sip}`,
     network_type: `${participant.network_type}`,
     device: `${participant.device}`,
-    ip_address: `${participant.ip_address}`,
-    share_application: `${participant.share_application}`,
+    ip_address: `${participant.ip_address}`,    
     share_desktop: `${participant.share_desktop}`,
+    share_application: `${participant.share_application}`,
     share_whiteboard: `${participant.share_whiteboard}`,
     recording: `${participant.recording}`,
     role: `${participant.role}`,
   };
-
-  stringifier.write([hoap.meetingid, hoap.id, hoap.user_id, hoap.user_name, hoap.email, hoap.topic, 
-    hoap.start_time, hoap.end_time, hoap.duration, hoap.participants, hoap.has_pstn, hoap.has_3rd_party_audio,
-  hoap.has_video, hoap.has_screen_share, hoap.has_recording, hoap.has_sip, hoap.network_type, hoap.device,
-  hoap.ip_address, hoap.share_application, hoap.share_desktop, hoap.share_whiteboard, hoap.recording, hoap.role]);
-  
-  //log.info(hoap);
+  log.info(hoap);
 }
 (async function() {
-  for (let i = 0; i < userEmails.length; i++) { 
-    const meetingUrl = `https://api.zoom.us/v2/report/users/${userEmails[i]}/meetings?from=${Config.from}&to=${Config.to}&type=past`;
+  for (let i = 0; i < ids.length; i++) { 
+    const meetingUrl = `https://api.zoom.us/v2/report/users/${ids[i]}/meetings?from=${Config.from}&to=${Config.to}&type=past`;
     let response = await get(i, meetingUrl)
+  
     let payload = await response.json();
-    if (payload.meetings !== undefined) {      
+    
+    if (payload.meetings !== undefined) {    
+        
       try {
         for (let i = 0; i < payload.meetings.length; i++) {     
           //first get meeting metadata
           const meetingurl = `https://api.zoom.us/v2/metrics/meetings/${payload.meetings[i].id}?type=past`; 
           response = await get(i, meetingurl)
           const meeting = await response.json();                    
-
+          
           const participantsUrl = `https://api.zoom.us/v2/metrics/meetings/${payload.meetings[i].id}/participants?type=past`;
           response = await get(i, participantsUrl)
           
@@ -151,10 +120,9 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
               data.participants[j].id = "0_0000-000000000000-00";
               data.participants[j].ip_address = "0.0.0.0"
             }
-            makeLogEntry({email:data.participants[j].email, meeting:meeting, participant:data.participants[j]});            
+            makeLogEntry({email:data.participants[j].email, meeting:meeting, participant:data.participants[j]});
           }
-          stringifier.pipe(writableStream);
-        }        
+        }   
       } catch (error) {
         console.log(error);
         break;
@@ -162,5 +130,4 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
     }
   }
 })()
-
 

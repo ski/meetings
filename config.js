@@ -6,8 +6,8 @@ const config = {
     APIKey:
       "HTKFlqrNQySEYdvzHj-A4A",
     APISecret: "3eHI88HxJiBiEUxeDdxama9GdhFNsM0G14eB",
-    from: "2022-01-30",
-    to: "2022-02-16",
+    from: "2022-06-21",
+    to: "2022-06-22",
     debug: true,
     bucketSize: 5,
     limit: 1,
