@@ -72,6 +72,8 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
     start_time: `${meeting.start_time}`,
     end_time: `${meeting.end_time}`,
     duration: `${meeting.duration}`,
+    join_time:`${participant.join_time}`,
+    leave_time: `${participant.leave_time}`,
     participants: `${meeting.participants}`,
     has_pstn: `${meeting.has_pstn}`,        
     has_voip: `${meeting.has_voip}`,
