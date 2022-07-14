@@ -35,7 +35,7 @@ const token = jwt.sign(payload, Config.APISecret);
 
 async function request(i, endpoint) {
   const response =  fetch(endpoint, {
-    agent: proxyAgent,
+    //agent: proxyAgent,
     method: "get",
     headers: {
       "Content-Type": "application/json",
@@ -64,7 +64,7 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
   const leave = new Date(participant.leave_time).getTime();
   const join = new Date(participant.join_time).getTime();
   const msInMinute =   60 * 1000;
-
+  
   const hoap = {
     meetingid: `${meeting.id}`,
     id: `${participant.id}`,
@@ -75,10 +75,10 @@ const makeLogEntry = ({email: email, meeting: meeting, participant: participant}
     topic: `${meeting.topic}`,
     start_time: `${meeting.start_time}`,
     end_time: `${meeting.end_time}`,
-    duration: `${Math.round(Math.abs(leave-join)/msInMinute)}`,
+    duration: `${meeting.duration}`,
     join_time:`${participant.join_time}`,
     leave_time: `${participant.leave_time}`,
-    participant_duration: `${participant.duration}`,
+    participant_duration: `${Math.round(Math.abs(leave-join)/msInMinute)}`,
     participants: `${meeting.participants}`,
     has_pstn: `${meeting.has_pstn}`,        
     has_voip: `${meeting.has_voip}`,
