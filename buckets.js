@@ -35,6 +35,7 @@ const token = jwt.sign(payload, Config.APISecret);
 
 async function request(i, endpoint) {
   const response =  fetch(endpoint, {
+
     agent: proxyAgent,
     method: "get",
     headers: {
